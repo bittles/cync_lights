@@ -323,7 +323,7 @@ class CyncHub:
                                     self.cync_switches[deviceID].update_switch(
                                         state,
                                         brightness,
-                                        self.cync_switches[deviceID].color_temp_kelvin,
+                                        self.cync_switches[deviceID].color_temp,
                                         self.cync_switches[deviceID].rgb,
                                     )
                             elif packet_length >= 25 and int(packet[13]) == 84:
