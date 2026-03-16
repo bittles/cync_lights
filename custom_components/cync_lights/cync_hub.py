@@ -36,11 +36,11 @@ class CyncHub:
         self.loop = None
         self.reader = None
         self.writer = None
-        self.login_code = bytearray(user_data["cync_credentials"])
+        self.login_code = bytearray(user_data['cync_credentials'])
         self.logged_in = False
-        self.home_devices = user_data["cync_config"]["home_devices"]
-        self.home_controllers = user_data["cync_config"]["home_controllers"]
-        self.switchID_to_homeID = user_data["cync_config"]["switchID_to_homeID"]
+        self.home_devices = user_data['cync_config']['home_devices']
+        self.home_controllers = user_data['cync_config']['home_controllers']
+        self.switchID_to_homeID = user_data['cync_config']['switchID_to_homeID']
         self.connected_devices = {
             home_id: [] for home_id in self.home_controllers.keys()
         }
@@ -48,30 +48,30 @@ class CyncHub:
         self.remove_options_update_listener = remove_options_update_listener
         self.cync_rooms = {
             room_id: CyncRoom(room_id, room_info, self)
-            for room_id, room_info in user_data["cync_config"]["rooms"].items()
+            for room_id, room_info in user_data['cync_config']['rooms'].items()
         }
         self.cync_switches = {
             device_id: CyncSwitch(
                 device_id,
                 switch_info,
-                self.cync_rooms.get(switch_info["room"], None),
+                self.cync_rooms.get(switch_info['room'], None),
                 self,
             )
-            for device_id, switch_info in user_data["cync_config"]["devices"].items()
+            for device_id, switch_info in user_data['cync_config']['devices'].items()
             if switch_info.get("ONOFF", False)
         }
         self.cync_motion_sensors = {
             device_id: CyncMotionSensor(
-                device_id, device_info, self.cync_rooms.get(device_info["room"], None)
+                device_id, device_info, self.cync_rooms.get(device_info['room'], None)
             )
-            for device_id, device_info in user_data["cync_config"]["devices"].items()
+            for device_id, device_info in user_data['cync_config']['devices'].items()
             if device_info.get("MOTION", False)
         }
         self.cync_ambient_light_sensors = {
             device_id: CyncAmbientLightSensor(
-                device_id, device_info, self.cync_rooms.get(device_info["room"], None)
+                device_id, device_info, self.cync_rooms.get(device_info['room'], None)
             )
-            for device_id, device_info in user_data["cync_config"]["devices"].items()
+            for device_id, device_info in user_data['cync_config']['devices'].items()
             if device_info.get("AMBIENT_LIGHT", False)
         }
         self.switchID_to_deviceIDs = {
@@ -105,10 +105,10 @@ class CyncHub:
             for controller in home_controllers:
                 seq = self.get_seq_num()
                 state_request = (
-                    bytes.fromhex("7300000018")
-                    + int(controller).to_bytes(4, "big")
-                    + seq.to_bytes(2, "big")
-                    + bytes.fromhex("007e00000000f85206000000ffff0000567e")
+                    bytes.fromhex('7300000018')
+                    + int(controller).to_bytes(4,'big')
+                    + seq.to_bytes(2, 'big')
+                    + bytes.fromhex('007e00000000f85206000000ffff0000567e')
                 )
                 self.loop.call_soon_threadsafe(self.send_request, state_request)
 
@@ -118,7 +118,7 @@ class CyncHub:
                 context = ssl.create_default_context()
                 try:
                     self.reader, self.writer = await asyncio.open_connection(
-                        "cm.gelighting.com", 23779, ssl=context
+                        'cm.gelighting.com', 23779, ssl=context
                     )
                 except Exception as e:
                     _LOGGER.warning(
@@ -128,14 +128,14 @@ class CyncHub:
                     context.verify_mode = ssl.CERT_NONE
                     try:
                         self.reader, self.writer = await asyncio.open_connection(
-                            "cm.gelighting.com", 23779, ssl=context
+                            'cm.gelighting.com', 23779, ssl=context
                         )
                     except Exception as e:
                         _LOGGER.warning(
                             "Connection problem, attempting alternate port", exc_info=e
                         )
                         self.reader, self.writer = await asyncio.open_connection(
-                            "cm.gelighting.com", 23778
+                            'cm.gelighting.com', 23778
                         )
             except Exception as e:
                 _LOGGER.warning("Failed to connect, waiting before retry.", exc_info=e)
