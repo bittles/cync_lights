@@ -294,7 +294,7 @@ class CyncHub:
                                                     brightness,
                                                     self.cync_switches[
                                                         device_id
-                                                    ].color_temp_kelvin,
+                                                    ].color_temp,
                                                     self.cync_switches[device_id].rgb,
                                                 )
                                         else:
@@ -378,7 +378,7 @@ class CyncHub:
                                                     brightness,
                                                     self.cync_switches[
                                                         device_id
-                                                    ].color_temp_kelvin,
+                                                    ].color_temp,
                                                     self.cync_switches[device_id].rgb,
                                                 )
                                         else:
@@ -594,7 +594,7 @@ class CyncRoom:
         self.mesh_id = int(room_info.get("mesh_id", 0)).to_bytes(2, "little")
         self.power_state = False
         self.brightness = 0
-        self.color_temp_kelvin = 0
+        self.color_temp = 0
         self.rgb = {"r": 0, "g": 0, "b": 0, "active": False}
         self.switches = room_info.get("switches", [])
         self.subgroups = room_info.get("subgroups", [])
@@ -793,7 +793,7 @@ class CyncRoom:
     def update_room(self):
         """Update the current state of the room"""
         _brightness = self.brightness
-        _color_temp = self.color_temp_kelvin
+        _color_temp = self.color_temp
         _rgb = self.rgb
         _power_state = True in (
             [
@@ -822,11 +822,11 @@ class CyncRoom:
             _color_temp = round(
                 sum(
                     [
-                        self.hub.cync_switches[device_id].color_temp_kelvin
+                        self.hub.cync_switches[device_id].color_temp
                         for device_id in self.switches_support_color_temp
                     ]
                     + [
-                        self.hub.cync_rooms[room_id].color_temp_kelvin
+                        self.hub.cync_rooms[room_id].color_temp
                         for room_id in self.groups_support_color_temp
                     ]
                 )
@@ -889,16 +889,16 @@ class CyncRoom:
         if (
             _power_state != self.power_state
             or _brightness != self.brightness
-            or _color_temp != self.color_temp_kelvin
+            or _color_temp != self.color_temp
             or _rgb != self.rgb
         ):
             self.power_state = _power_state
             self.brightness = _brightness
-            self.color_temp_kelvin = _color_temp
+            self.color_temp = _color_temp
             self.rgb = _rgb
-            self.publish_update()
-            if self._update_parent_room:
-                self._update_parent_room()
+        self.publish_update()
+        if self._update_parent_room:
+            self._update_parent_room()
 
     def update_controllers(self):
         """Update the list of responsive, Wi-Fi connected controller devices"""
@@ -941,7 +941,7 @@ class CyncSwitch:
         self.room = room
         self.power_state = False
         self.brightness = 0
-        self.color_temp_kelvin = 0
+        self.color_temp = 0
         self.rgb = {"r": 0, "g": 0, "b": 0, "active": False}
         self.default_controller = switch_info.get(
             "switch_controller", self.hub.home_controllers[self.home_id][0]
@@ -1082,24 +1082,16 @@ class CyncSwitch:
     def update_switch(self, state, brightness, color_temp, rgb):
         """Update the state of the switch as updates are received from the Cync server"""
         self.update_received = True
-        # Cync sends the color temp as a percentage from 0-100 based on the max and min
-        # color temp. Most Cync bulbs support 2000K-7000K, so we have to calculate what
-        # is actually being requested.
-        _color_temp = round(
-            (self.max_color_temp_kelvin - self.min_color_temp_kelvin) *
-            (color_temp / 100) +
-            self.min_color_temp_kelvin
-        )
-        if self.power_state != state or self.brightness != brightness or self.color_temp_kelvin != _color_temp or self.rgb != rgb:
+        if self.power_state != state or self.brightness != brightness or self.color_temp != color_temp or self.rgb != rgb:
             self.power_state = state
             self.brightness = (
                 brightness if self.support_brightness and state else 100 if state else 0
             )
-            self.color_temp_kelvin = _color_temp
+            self.color_temp = color_temp
             self.rgb = rgb
-            self.publish_update()
-            if self._update_parent_room:
-                self._update_parent_room()
+        self.publish_update()
+        if self._update_parent_room:
+            self._update_parent_room()
 
     def update_controllers(self):
         """Update the list of responsive, Wi-Fi connected controller devices"""
